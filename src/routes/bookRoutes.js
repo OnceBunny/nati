@@ -5,7 +5,7 @@ import { protectAuth } from "../middleware/auth.middleware.js";
 const router = express.Router();
 
 // Create Book
-router.get("/", protectAuth, async (req, res) => {
+router.post("/", protectAuth, async (req, res) => {
   try {
     const { title, caption, rating, image, user } = req.body;
     if (!title || !caption || !rating || !image || !user) {

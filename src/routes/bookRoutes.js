@@ -8,14 +8,27 @@ const router = express.Router();
 router.post("/", protectAuth, async (req, res) => {
   try {
     const { title, caption, rating, image } = req.body;
+
     if (!title || !caption || !rating || !image) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    //upload to cloudinary
+
+    // Validate image format (Base64 check)
+    const isValidImage = image.startsWith("data:image/");
+    if (!isValidImage) {
+      return res.status(400).json({ message: "Invalid image format" });
+    }
+
+    // Ensure user exists
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized: User not found" });
+    }
+
+    // Upload to Cloudinary
     const uploadResponse = await cloudinary.uploader.upload(image);
     const imageUrl = uploadResponse.secure_url;
 
-    //save to database
+    // Save to database
     const newBook = new Book({
       title,
       caption,
@@ -23,9 +36,16 @@ router.post("/", protectAuth, async (req, res) => {
       image: imageUrl,
       user: req.user._id,
     });
+
     await newBook.save();
     res.status(201).json(newBook);
   } catch (error) {
+    if (error.name === "CloudinaryError") {
+      return res
+        .status(500)
+        .json({ message: "Error uploading image to Cloudinary" });
+    }
+
     console.log("Error creating book", error);
     res.status(500).json({ message: error.message });
   }

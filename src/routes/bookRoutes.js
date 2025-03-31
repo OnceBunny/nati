@@ -7,8 +7,8 @@ const router = express.Router();
 // Create Book
 router.post("/", protectAuth, async (req, res) => {
   try {
-    const { title, caption, rating, image, user } = req.body;
-    if (!title || !caption || !rating || !image || !user) {
+    const { title, caption, rating, image } = req.body;
+    if (!title || !caption || !rating || !image) {
       return res.status(400).json({ message: "All fields are required" });
     }
     //upload to cloudinary
